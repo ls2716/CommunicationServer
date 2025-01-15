@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Communication Room</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="container mt-4">
+      <h1 class="text-center">Communication Room</h1>
+      <p class="text-center">Send a message to the server and receive a response.</p>
+    </div>
+
+    <hr />
+
+    <div class="container mt-4">
+      <h2 class="text-center">Chat</h2>
+
+      <!-- Chat log -->
+      <div class="form-group">
+        <textarea id="chat-log" class="form-control" rows="10" disabled></textarea>
+      </div>
+
+      <!-- Chat input and button -->
+      <div class="input-group mb-3">
+        <input
+          id="chat-message-input"
+          type="text"
+          class="form-control"
+          placeholder="Type your message..."
+        />
+        <button id="chat-message-submit" class="btn btn-primary" type="button">
+          Send
+        </button>
+      </div>
+    </div>
+    {{ endpoint_code|json_script:"endpoint-code" }}
+    <script>
+      const endpointCode = JSON.parse(
+        document.getElementById("endpoint-code").textContent
+      );
+
+      // Compute the WebSocket URL
+      const ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+
+      const chatSocket = new WebSocket(
+        `${ws_scheme}://${window.location.host}/ws/endpoint/${encodeURIComponent(
+          endpointCode
+        )}/`
+      );
+
+      chatSocket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+        document.querySelector("#chat-log").value += data.message + "\n";
+      };
+
+      chatSocket.onclose = function (e) {
+        console.error("Chat socket closed unexpectedly");
+      };
+
+      document.querySelector("#chat-message-input").focus();
+      document.querySelector("#chat-message-input").onkeyup = function (e) {
+        if (e.key === "Enter") {
+          // enter, return
+          document.querySelector("#chat-message-submit").click();
+        }
+      };
+
+      document.querySelector("#chat-message-submit").onclick = function (e) {
+        const messageInputDom = document.querySelector("#chat-message-input");
+        const message = messageInputDom.value;
+        chatSocket.send(
+          JSON.stringify({
+            "message": message,
+          })
+        );
+        messageInputDom.value = "";
+      };
+    </script>
+  </body>
+</html>

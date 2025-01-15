@@ -1,0 +1,26 @@
+# Ignore config.yaml
+config.yaml
+remote_config.yaml
+
+
+# Ignore venv
+venv/
+
+# Ignore .pyc files and __pycache__ directory
+*.pyc
+__pycache__/
+
+# db.sqlite3
+db.sqlite3
+
+config.yaml
+
+# Ignore static files
+static/
+
+# Ignore media files
+media/
+
+# Ignore migrations
+migrations/
+

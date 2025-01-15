@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Communication Room</title>
+  </head>
+  <body>
+    <div class="container m-3">
+      <h1>Communication Room</h1>
+      <p>Send a message to the server and receive a response.</p>
+    </div>
+    <hr />
+    <div class="container m-3">
+      <h2>Chat</h2>
+      <textarea id="chat-log" cols="100" rows="20" disabled></textarea><br />
+      <input id="chat-message-input" type="text" size="100" /><br />
+      <input id="chat-message-submit" type="button" value="Send" />
+    </div>
+    {{ endpoint_code|json_script:"endpoint-code" }}
+    <script>
+      const endpointCode = JSON.parse(
+        document.getElementById("endpoint-code").textContent
+      );
+
+      // Compute the WebSocket URL
+      const chatSocket = new WebSocket(
+        `wss://comms.ls314.com/ws/endpoint/${encodeURIComponent(
+          endpointCode
+        )}/`
+      );
+
+      chatSocket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+        document.querySelector("#chat-log").value += data.message + "\n";
+      };
+
+      chatSocket.onclose = function (e) {
+        console.error("Chat socket closed unexpectedly");
+      };
+
+      document.querySelector("#chat-message-input").focus();
+      document.querySelector("#chat-message-input").onkeyup = function (e) {
+        if (e.key === "Enter") {
+          // enter, return
+          document.querySelector("#chat-message-submit").click();
+        }
+      };
+
+      document.querySelector("#chat-message-submit").onclick = function (e) {
+        const messageInputDom = document.querySelector("#chat-message-input");
+        const message = messageInputDom.value;
+        chatSocket.send(
+          JSON.stringify({
+            "message": message,
+          })
+        );
+        messageInputDom.value = "";
+      };
+    </script>
+  </body>
+</html>
