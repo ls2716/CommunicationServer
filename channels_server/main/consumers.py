@@ -4,6 +4,7 @@ from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from .models import Endpoint
 
+
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
         self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
@@ -52,20 +53,22 @@ class RoomConsumer(WebsocketConsumer):
         # If the endpoint is not found, close the connection
         if endpoint is None:
             self.close()
-        
+
         self.permissions = endpoint.permissions
+        self.endpoint_identity = endpoint.identity
         self.room_name = endpoint.room.name
         # Get the user name
         self.username = endpoint.room.owner.username
         # Get the room group name
         self.room_group_name = f"{self.username}_{self.room_name}"
 
-
         # Join room group
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name, self.channel_name
         )
-        print(f"Connected endpoint_code {self.endpoint_code} to {self.room_name} room of user {self.username}.")
+        print(
+            f"Connected endpoint_code {self.endpoint_code} to {self.room_name} room of user {self.username}."
+        )
 
         self.accept()
 
@@ -85,7 +88,12 @@ class RoomConsumer(WebsocketConsumer):
         if "write" in self.permissions:
             # Send message to room group
             async_to_sync(self.channel_layer.group_send)(
-                self.room_group_name, {"type": "room.message", "message": message}
+                self.room_group_name,
+                {
+                    "type": "room.message",
+                    "message": message,
+                    "identity": self.endpoint_identity,
+                },
             )
 
     # Receive message from room group
@@ -93,5 +101,6 @@ class RoomConsumer(WebsocketConsumer):
         if "read" in self.permissions:
             # Extract the message from the event
             message = event["message"]
+            identity = event["identity"]
             # Send message to WebSocket
-            self.send(text_data=json.dumps({"message": message}))
+            self.send(text_data=json.dumps({"message": message, "identity": identity}))

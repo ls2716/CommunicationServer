@@ -56,6 +56,13 @@ DEBUG: True
 ALLOWED_HOSTS: ['*']
 ```
 
+To generate a secret key you can use the following command:
+
+```python
+from django.core.management.utils import get_random_secret_key
+print(get_random_secret_key())
+```
+
 9.  Run the server
 
 ```bash

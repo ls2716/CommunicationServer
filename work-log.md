@@ -256,3 +256,17 @@ In nginx configuration, the following lines were added:
     }
 ```
 
+## 15.01.2025
+
+Initialised repo and put online.
+
+Added redis to the project following chatgpt instructions.
+
+### Goals
+
+- Finish README.md
+- Advertise demo + mention availability of api-key for developers
+- Write a blog post
+- Update ls314.com with the project.
+- Add endpoint meta information for author tracking.
+- Add message timestamp
