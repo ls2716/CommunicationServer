@@ -46,6 +46,12 @@ from django.core.management.utils import get_random_secret_key
 print(get_random_secret_key())
 ```
 
+6. Change the directory to the channels_server folder
+
+```bash
+cd channels_server
+```
+
 6. Collect the static files
 
 ```bash
