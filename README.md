@@ -13,18 +13,37 @@ that needs real-time communication.
 ## Installation for development
 
 1. Clone the repository
-2. In the parent directory create a virtual environment
+2. In the main repository directory create a virtual environment
 
 ```bash
 python -m venv venv
 ```
+
 (or equivalent command for your OS and python version)
 
 3. Activate the virtual environment
 4. Install the requirements from the requirements.txt file
-   
+
 ```bash
 pip install -r requirements.txt
+```
+
+5. Create a configuration file config.yaml in the main repository directory (the parent
+   of channels_server folder)
+
+```yaml
+# config.yaml
+SECRET_KEY: "your_secret_key"
+DEBUG: True
+ALLOWED_HOSTS: ["*"]
+USE_REDIS: False
+```
+
+To generate a secret key you can use the following command:
+
+```python
+from django.core.management.utils import get_random_secret_key
+print(get_random_secret_key())
 ```
 
 5. Collect the static files
@@ -45,25 +64,10 @@ python manage.py migrate
 ```bash
 python manage.py createsuperuser
 ```
+
 Then follow the prompts to create a superuser.
 
-8. Create a configuration file config.yaml in the parent directory 
-
-```yaml
-# config.yaml
-SECRET_KEY: 'your_secret_key'
-DEBUG: True
-ALLOWED_HOSTS: ['*']
-```
-
-To generate a secret key you can use the following command:
-
-```python
-from django.core.management.utils import get_random_secret_key
-print(get_random_secret_key())
-```
-
-9.  Run the server
+1.  Run the server
 
 ```bash
 python manage.py runserver
@@ -73,10 +77,6 @@ python manage.py runserver
 
 ... (explain the usage)
 
-
 ## Production-ready deployment with daphne, nginx, certbot and redis
 
 ... (explain the deployment process)
-
-
-

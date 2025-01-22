@@ -21,6 +21,7 @@ static/
 # Ignore media files
 media/
 
-# Ignore migrations
-migrations/
+# Ignore migrations exlcuding __init__.py
+migrations/*
+
 
