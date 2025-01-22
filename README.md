@@ -16,7 +16,7 @@ that needs real-time communication.
 2. In the main repository directory create a virtual environment
 
 ```bash
-python -m venv venv
+python -m venv venv --upgrade-deps
 ```
 
 (or equivalent command for your OS and python version)
