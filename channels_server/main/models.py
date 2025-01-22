@@ -4,7 +4,7 @@ from django.db import models
 
 
 class CustomUser(AbstractUser):
-    api_key = models.CharField(max_length=40, blank=True, null=True)
+    api_key = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
         return self.username

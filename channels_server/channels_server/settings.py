@@ -133,7 +133,7 @@ STATIC_ROOT = BASE_DIR / "static"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Set the channel layer according to config
+# Set the channel layer according to config - FOR PRODUCTION
 if config["USE_REDIS"]:
     CHANNEL_LAYERS = {
         "default": {
@@ -145,7 +145,7 @@ if config["USE_REDIS"]:
             },
         },
     }
-else:
+else: # FOR DEVELOPMENT; NOT RECOMMENDED FOR PRODUCTION
     CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
 
 AUTH_USER_MODEL = "main.CustomUser"

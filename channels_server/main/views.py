@@ -17,6 +17,7 @@ def index(request):
 def room(request, endpoint_code):
     return render(request, "main/room.html", {"endpoint_code": endpoint_code})
 
+
 def room_bad(request, endpoint_code):
     return render(request, "main/room_bad.html", {"endpoint_code": endpoint_code})
 
@@ -79,7 +80,9 @@ def add_endpoint(request, room_name, permissions):
 
     # Check if the permissions are valid
     if permissions not in ["read", "write", "readwrite"]:
-        return HttpResponseNotFound("Invalid permissions: The permissions should be read, write or readwrite")
+        return HttpResponseNotFound(
+            "Invalid permissions: The permissions should be read, write or readwrite"
+        )
 
     # Generate random 100 character code
     endpoint_code = "".join(
@@ -89,9 +92,7 @@ def add_endpoint(request, room_name, permissions):
     )
 
     # Create a new endpoint
-    Endpoint.objects.create(
-        code=endpoint_code, permissions=permissions, room=room
-    )
+    Endpoint.objects.create(code=endpoint_code, permissions=permissions, room=room)
 
     return JsonResponse(
         {"code": endpoint_code, "permissions": permissions, "room": room_name}
@@ -126,7 +127,11 @@ def list_endpoints(request, room_name):
     return JsonResponse(
         {
             "endpoints": [
-                {"code": endpoint.code, "permissions": endpoint.permissions}
+                {
+                    "code": endpoint.code,
+                    "permissions": endpoint.permissions,
+                    "identity": endpoint.identity,
+                }
                 for endpoint in endpoints
             ]
         }
