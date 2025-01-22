@@ -21,7 +21,8 @@ static/
 # Ignore media files
 media/
 
-# Ignore migrations exlcuding __init__.py
-migrations/*
+# Ignore all migration files
+channels_server/main/migrations/*
 
-
+# Don't ignore the __init__.py file
+!channels_server/main/migrations/__init__.py
