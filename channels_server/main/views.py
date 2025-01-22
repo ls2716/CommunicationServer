@@ -78,6 +78,9 @@ def add_endpoint(request, room_name, permissions):
     # Get the room or return 404
     room = get_object_or_404(Room, name=room_name, owner=user)
 
+    # Get idenity from the request query params
+    identity = request.GET.get("identity", "Anonymous")
+
     # Check if the permissions are valid
     if permissions not in ["read", "write", "readwrite"]:
         return HttpResponseNotFound(
@@ -92,7 +95,9 @@ def add_endpoint(request, room_name, permissions):
     )
 
     # Create a new endpoint
-    Endpoint.objects.create(code=endpoint_code, permissions=permissions, room=room)
+    Endpoint.objects.create(
+        code=endpoint_code, permissions=permissions, room=room, identity=identity
+    )
 
     return JsonResponse(
         {"code": endpoint_code, "permissions": permissions, "room": room_name}

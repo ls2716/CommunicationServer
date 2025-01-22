@@ -46,32 +46,44 @@ from django.core.management.utils import get_random_secret_key
 print(get_random_secret_key())
 ```
 
-5. Collect the static files
+6. Collect the static files
 
 ```bash
 python manage.py collectstatic
 ```
 
-6. Make and apply the migrations
+7. Make and apply the migrations
 
 ```bash
 python manage.py makemigrations
 python manage.py migrate
 ```
 
-7. Create a superuser
+8. Create a superuser
 
 ```bash
 python manage.py createsuperuser
 ```
 
-Then follow the prompts to create a superuser.
+Then follow the prompts to create a superuser. This will create a user with an empty
+api-key - this means you don't have to modify the headers to use the app but it is
+a security risk. Change the api-key in the admin panel in production.
 
-1.  Run the server
+9.  Run the server
 
 ```bash
 python manage.py runserver
 ```
+
+10. (optional) Run the demo setup to test the app
+
+```bash
+python setup_demo.py
+```
+
+This will provide you with links to chat rooms with two separate endpoints.
+
+
 
 ## Usage - api_tokens, rooms, endpoints
 
