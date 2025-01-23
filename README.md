@@ -233,7 +233,8 @@ The deployment processes assumes following:
 
 - Server running Ubuntu >=20.04 with sudo access and exposed ports 80 and 443
 - Domain name with A record pointing to the server
-- Python >=3.8 installed on the server with virtualenv
+- Python >=3.12 installed on the server with virtualenv (might work with other versions
+  but not tested)
 - nginx installed on the server and running
 - Redis installed on the server and running on localhost with port 6379 (default
   settings)
