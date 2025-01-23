@@ -352,10 +352,18 @@ sudo ln -s /etc/nginx/sites-available/channels_server /etc/nginx/sites-enabled/
 sudo nginx -t
 ```
 
-8. Restart the nginx server
+8. Add SSL certificate with certbot.
+
+```bash
+sudo certbot --nginx
+```
+
+Follow the prompts to add the SSL certificate to the domain name.
+
+9. Restart nginx
 
 ```bash
 sudo systemctl restart nginx
 ```
 
-9. Done - the server should be running on the domain name.
+10.  The server should be running on the domain name. 
