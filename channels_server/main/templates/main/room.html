@@ -55,7 +55,7 @@
 
       chatSocket.onmessage = function (e) {
         const data = JSON.parse(e.data);
-        document.querySelector("#chat-log").value += data.identity+": " + data.message + "\n";
+        document.querySelector("#chat-log").value += data.identity+" (" + data.timestamp+"): " + data.message + "\n";
       };
 
       chatSocket.onclose = function (e) {

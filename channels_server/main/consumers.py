@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timezone
 
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
@@ -85,6 +86,8 @@ class RoomConsumer(WebsocketConsumer):
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
         message = text_data_json["message"]
+        # Add timestamp to the message using UTC timezone
+        timestamp = datetime.now(timezone.utc).isoformat()
         if "write" in self.permissions:
             # Send message to room group
             async_to_sync(self.channel_layer.group_send)(
@@ -93,8 +96,10 @@ class RoomConsumer(WebsocketConsumer):
                     "type": "room.message",
                     "message": message,
                     "identity": self.endpoint_identity,
+                    "timestamp": timestamp,
                 },
             )
+        
 
     # Receive message from room group
     def room_message(self, event):
@@ -102,5 +107,6 @@ class RoomConsumer(WebsocketConsumer):
             # Extract the message from the event
             message = event["message"]
             identity = event["identity"]
+            timestamp = event["timestamp"]
             # Send message to WebSocket
-            self.send(text_data=json.dumps({"message": message, "identity": identity}))
+            self.send(text_data=json.dumps({"message": message, "identity": identity, "timestamp": timestamp}))

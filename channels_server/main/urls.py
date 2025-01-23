@@ -7,7 +7,6 @@ from . import views
 urlpatterns = [
     path("", views.index, name="index"),
     path("room/<str:endpoint_code>/", views.room, name="room"),
-    path("room_bad/<str:endpoint_code>/", views.room_bad, name="room_bad"),
     path("create_room/<str:room_name>/", views.create_room, name="create_room"),
     path("list_rooms/", views.list_rooms, name="list_rooms"),
     path("delete_room/<str:room_name>/", views.delete_room, name="delete_room"),
