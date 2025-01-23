@@ -141,7 +141,8 @@ the room while the frontend should only receive messages and not be able to send
 anything.
 
 The identity is a string that is used to identify the endpoint. The identity can be
-anything and it can be used by frontend to identify the endpoint.
+anything and it can be used by frontend to identify the endpoint. If no identity is
+provided, the identity will be "Anonymous".
 
 The add_endpoint endpoint will return a json with the following structure:
 
@@ -149,7 +150,8 @@ The add_endpoint endpoint will return a json with the following structure:
 {
   "code": "<endpoint_code>",
   "room": "<room_name>",
-  "permissions": "<permissions>"
+  "permissions": "<permissions>",
+  "identity": "<identity>"
 }
 ```
 
@@ -227,8 +229,133 @@ permissions.
 
 ## Production-ready deployment with daphne, nginx, certbot and redis
 
-... (explain the deployment process)
+The deployment processes assumes following:
 
+- Server running Ubuntu >=20.04 with sudo access and exposed ports 80 and 443
+- Domain name with A record pointing to the server
+- Python >=3.8 installed on the server with virtualenv
+- nginx installed on the server and running
+- Redis installed on the server and running on localhost with port 6379 (default
+  settings)
+- installed certbot
+
+1. Repeat steps 1-8 from the installation process on the remote server
+2. Modify the config.yaml.
+
+```yaml
+# config.yaml
+SECRET_KEY: "your_secret_key"
+DEBUG: False
+ALLOWED_HOSTS: ['<domain_name>']
+CSRF_TRUSTED_ORIGINS: ['https://<domain_name>']
+USE_REDIS: True
 ```
 
+3. Create a systemd service for the daphne server
+
+```bash
+sudo nano /etc/systemd/system/daphne.service
 ```
+
+and configure daphne.service like so:
+
+```
+[Unit]
+Description=Daphne Server for Communication Server
+After=network.target
+
+[Service]
+User=user
+Group=user
+WorkingDirectory=/home/user/path/to/dir/channels_server
+ExecStart=/home/user/path/to/dir/venv/bin/daphne -b 127.0.0.1 -p 8002 channels_server.asgi:application
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Remember to update the User, Group, WorkingDirectory, ExecStart accordingly.
+
+1. Enable and start the daphne service
+
+```bash
+sudo systemctl enable daphne
+sudo systemctl start daphne
+```
+
+5. Create a VirtualHost configuration for nginx
+
+```bash
+sudo nano /etc/nginx/sites-available/channels_server
+```
+
+and configure the VirtualHost like so:
+
+```
+server {
+    server_name <domain_name>;
+
+    # Static files
+    location /static/ {
+        alias /home/user/path/to/dir/channels_server/static/;
+    }
+
+    # Proxy HTTP requests to Daphne/Uvicorn
+    location / {
+        proxy_pass http://127.0.0.1:8002;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # WebSocket handling
+    location /ws/ {
+         if ($request_method = OPTIONS) {
+                add_header 'Access-Control-Allow-Origin' '*';
+                add_header 'Access-Control-Allow-Credentials' 'true';
+                add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+                return 204;
+        }
+
+        proxy_pass http://127.0.0.1:8002;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Allow CORS for WebSocket connections
+        add_header 'Access-Control-Allow-Origin' '*' always;
+        add_header 'Access-Control-Allow-Credentials' 'true' always;
+    }
+
+    listen 80;
+
+}
+
+Remember to update the server_name and the static files path.
+
+6. Enable the VirtualHost
+
+```bash
+sudo ln -s /etc/nginx/sites-available/channels_server /etc/nginx/sites-enabled/
+```
+
+7. Test the nginx configuration
+
+```bash
+sudo nginx -t
+```
+
+8. Restart the nginx server
+
+```bash
+sudo systemctl restart nginx
+```
+
+9. Done - the server should be running on the domain name.

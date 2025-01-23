@@ -100,7 +100,7 @@ def add_endpoint(request, room_name, permissions):
     )
 
     return JsonResponse(
-        {"code": endpoint_code, "permissions": permissions, "room": room_name}
+        {"code": endpoint_code, "permissions": permissions, "room": room_name, "identity": identity}
     )
 
 
