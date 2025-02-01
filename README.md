@@ -103,7 +103,7 @@ The usage for a given application is as follows:
    attacks.
 2. Given the api-key, the app authenticates itself by sending the api-key in the headers
    of the request. The header should be `API-KEY: <api-key>`.
-3. The app can create a new room by sending a GET request to the `/create-room/`
+3. The app can create a new room by sending a GET request to the `/create_room/`
    endpoint like so:
 
 ```
@@ -114,7 +114,7 @@ The room name should be unique for the given api-key. The room name should be
 alphanumeric and can contain dashes and underscores. If the room exists, the server will
 return the 404 status code.
 
-Room can be deleted by sending a GET request to the `/delete-room/` endpoint like so:
+Room can be deleted by sending a GET request to the `/delete_room/` endpoint like so:
 
 ```
 <host>/delete-room/<room_name>/
