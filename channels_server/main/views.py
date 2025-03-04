@@ -87,7 +87,14 @@ def list_rooms(request):
         return HttpResponseForbidden("No/Invalid API KEY")
     # Get all rooms for the user
     rooms = Room.objects.filter(owner=user)
-    return JsonResponse({"rooms": [room.name for room in rooms]})
+    room_dict = {}
+    for room in rooms:
+        room_dict[room.name] = {
+            "webhook": room.webhook,
+            "room_name": room.name,
+            "owner": room.owner.username
+        }
+    return JsonResponse(room_dict)
 
 @csrf_exempt
 def add_endpoint(request):
@@ -176,9 +183,8 @@ def list_endpoints(request, room_name):
 def webhook(request):
     if request.method == "POST":
         # Get the data as json - the request is asgi request
-        data = json.loads(request.body)
-        # Get the endpoint code from the data
-        print(data)
+        _ = json.loads(request.body)
+        # print(_)
         return HttpResponse("Webhook received", status=200)
     else:
         return HttpResponseNotFound("Invalid request method")
