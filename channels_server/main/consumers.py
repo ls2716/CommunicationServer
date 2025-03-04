@@ -5,6 +5,7 @@ from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from .models import Endpoint
 
+import requests
 
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
@@ -58,6 +59,8 @@ class RoomConsumer(WebsocketConsumer):
         self.permissions = endpoint.permissions
         self.endpoint_identity = endpoint.identity
         self.room_name = endpoint.room.name
+        # Get the room webhook address
+        self.room_webhook = endpoint.room.webhook
         # Get the user name
         self.username = endpoint.room.owner.username
         # Get the room group name
@@ -99,6 +102,25 @@ class RoomConsumer(WebsocketConsumer):
                     "timestamp": timestamp,
                 },
             )
+            # Send the message as json to webhook adress
+            if self.room_webhook:
+                # Send as a post request to the webhook
+                data_json = json.dumps(
+                    {
+                        "message": message,
+                        "identity": self.endpoint_identity,
+                        "endpoint_code": self.endpoint_code,
+                        "room_name": self.room_name,
+                        "timestamp": timestamp,
+                    }
+                )
+                # Send the data to the webhook
+                _ = requests.post(self.room_webhook, data=data_json)
+            else:
+                # No webhook provided
+                pass
+
+
         
 
     # Receive message from room group

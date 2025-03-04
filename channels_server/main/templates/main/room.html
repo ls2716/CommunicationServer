@@ -44,28 +44,52 @@
         document.getElementById("endpoint-code").textContent
       );
 
-      // Compute the WebSocket URL
-      const ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+      const ws_scheme = window.location.protocol === "https:" ? "wss" : "ws";
+      const ws_url = `${ws_scheme}://${
+        window.location.host
+      }/ws/endpoint/${encodeURIComponent(endpointCode)}/`;
 
-      const chatSocket = new WebSocket(
-        `${ws_scheme}://${window.location.host}/ws/endpoint/${encodeURIComponent(
-          endpointCode
-        )}/`
-      );
+      let chatSocket;
+      let reconnectAttempts = 0;
 
-      chatSocket.onmessage = function (e) {
-        const data = JSON.parse(e.data);
-        document.querySelector("#chat-log").value += data.identity+" (" + data.timestamp+"): " + data.message + "\n";
-      };
+      function connect() {
+        chatSocket = new WebSocket(ws_url);
 
-      chatSocket.onclose = function (e) {
-        console.error("Chat socket closed unexpectedly");
-      };
+        chatSocket.onopen = function () {
+          console.log("WebSocket connected");
+          reconnectAttempts = 0; // Reset the attempts on successful connection
+        };
+
+        chatSocket.onmessage = function (e) {
+          const data = JSON.parse(e.data);
+          document.querySelector(
+            "#chat-log"
+          ).value += `${data.identity} (${data.timestamp}): ${data.message}\n`;
+        };
+
+        chatSocket.onclose = function (e) {
+          console.error("Chat socket closed unexpectedly", e);
+          attemptReconnect();
+        };
+
+        chatSocket.onerror = function (e) {
+          console.error("WebSocket error", e);
+          chatSocket.close();
+        };
+      }
+
+      function attemptReconnect() {
+        reconnectAttempts++;
+        const delay = Math.min(10000, Math.pow(2, reconnectAttempts) * 1000); // Exponential backoff, max 10 seconds
+        console.log(`Reconnecting in ${delay / 1000} seconds...`);
+        setTimeout(connect, delay);
+      }
+
+      connect();
 
       document.querySelector("#chat-message-input").focus();
       document.querySelector("#chat-message-input").onkeyup = function (e) {
         if (e.key === "Enter") {
-          // enter, return
           document.querySelector("#chat-message-submit").click();
         }
       };
@@ -73,12 +97,16 @@
       document.querySelector("#chat-message-submit").onclick = function (e) {
         const messageInputDom = document.querySelector("#chat-message-input");
         const message = messageInputDom.value;
-        chatSocket.send(
-          JSON.stringify({
-            "message": message,
-          })
-        );
-        messageInputDom.value = "";
+        if (chatSocket.readyState === WebSocket.OPEN) {
+          chatSocket.send(
+            JSON.stringify({
+              message: message,
+            })
+          );
+          messageInputDom.value = "";
+        } else {
+          console.warn("WebSocket is not connected. Message not sent.");
+        }
       };
     </script>
   </body>

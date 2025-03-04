@@ -90,7 +90,9 @@ python manage.py runserver
 python setup_demo.py
 ```
 
-This will provide you with links to chat rooms with two separate endpoints.
+This will provide you with links to chat rooms with two separate endpoints. To access
+the list endpoints with a non-null api-key, you need to modify the headers in your
+browser.
 
 ## Usage - api-keys, rooms, endpoints
 
@@ -103,28 +105,68 @@ The usage for a given application is as follows:
    attacks.
 2. Given the api-key, the app authenticates itself by sending the api-key in the headers
    of the request. The header should be `API-KEY: <api-key>`.
-3. The app can create a new room by sending a GET request to the `/create_room/`
+3. The app can create a new room by sending a POST request to the `/create_room/`
    endpoint like so:
 
 ```
-<host>/create-room/<room_name>/
+<host>/create-room/
 ```
+
+with json payload
+
+````json
+{
+  "room_name": "<room_name>",
+  "webhook": "<webhook>"
+}
 
 The room name should be unique for the given api-key. The room name should be
 alphanumeric and can contain dashes and underscores. If the room exists, the server will
 return the 404 status code.
 
+The webhook is an optional field that specifies a webhook url to which the communication
+server will cc all the messages sent to the room. The webhook should be a valid url. If
+the webhook is not provided, the server will not send any messages to the webhook.
+The purpose of the webhook is to provide a way to store the messages in a database and
+provide a message relay backup. The webhook format should include the protocol (http or
+https) and the domain name. The webhook should be able to receive POST requests with
+json payloads in the following format:
+
+```json
+{
+  "room_name": "<room_name>",
+  "message": "<message>",
+  "identity": "<identity>",
+  "code": "<endpoint_code>",
+  "timestamp": "<timestamp>"
+}
+````
+
 Room can be deleted by sending a GET request to the `/delete_room/` endpoint like so:
 
 ```
+
 <host>/delete-room/<room_name>/
+
 ```
 
-4. App can create endpoints in the room by sending a POST request to the
+1. App can create endpoints in the room by sending a POST request to the
    `/add_endpoint/` endpoint like so:
 
 ```
-<host>/add_endpoint/<room_name>/<permissions>/?identity=<identity>
+
+<host>/add_endpoint/
+
+```
+
+with json payload
+
+```json
+{
+  "room_name": "<room_name>",
+  "permissions": "<permissions>",
+  "identity": "<identity>"
+}
 ```
 
 If the room does not exist, the server will return the 404 status code. The permissions
@@ -149,7 +191,7 @@ The add_endpoint endpoint will return a json with the following structure:
 ```json
 {
   "code": "<endpoint_code>",
-  "room": "<room_name>",
+  "room_name": "<room_name>",
   "permissions": "<permissions>",
   "identity": "<identity>"
 }
@@ -157,7 +199,7 @@ The add_endpoint endpoint will return a json with the following structure:
 
 The endpoint code is a string that is used to authenticate the endpoint.
 
-5. The endpoint can be deleted by sending a GET request to the `/delete_endpoint/`
+1. The endpoint can be deleted by sending a GET request to the `/delete_endpoint/`
    endpoint like so:
 
 ```
@@ -247,8 +289,8 @@ The deployment processes assumes following:
 # config.yaml
 SECRET_KEY: "your_secret_key"
 DEBUG: False
-ALLOWED_HOSTS: ['<domain_name>']
-CSRF_TRUSTED_ORIGINS: ['https://<domain_name>']
+ALLOWED_HOSTS: ["<domain_name>"]
+CSRF_TRUSTED_ORIGINS: ["https://<domain_name>"]
 USE_REDIS: True
 ```
 
@@ -294,7 +336,7 @@ sudo nano /etc/nginx/sites-available/channels_server
 
 and configure the VirtualHost like so:
 
-```
+````
 server {
     server_name <domain_name>;
 
@@ -345,7 +387,7 @@ Remember to update the server_name and the static files path.
 
 ```bash
 sudo ln -s /etc/nginx/sites-available/channels_server /etc/nginx/sites-enabled/
-```
+````
 
 7. Test the nginx configuration
 
@@ -367,4 +409,4 @@ Follow the prompts to add the SSL certificate to the domain name.
 sudo systemctl restart nginx
 ```
 
-10.  The server should be running on the domain name. 
+10. The server should be running on the domain name.

@@ -3,10 +3,15 @@ from .models import CustomUser, Room, Endpoint
 from django.http import (
     HttpResponseNotFound,
     HttpResponseForbidden,
+    HttpResponseBadRequest,
     HttpResponse,
     JsonResponse,
 )
 import random
+import json
+
+# Import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt
 
 
 # Create your views here.
@@ -28,23 +33,39 @@ def get_user(api_key):
     except CustomUser.DoesNotExist:
         return None
 
-
-def create_room(request, room_name):
+@csrf_exempt
+def create_room(request):
+    if request.method != "POST":
+        return HttpResponseNotFound("Invalid request method")
     # Get the API KEY from header
-    api_key = request.headers.get("API-KEY")
+    api_key = request.headers.get("API-KEY", None)
+    print("API KEY '", api_key, "'", sep="")
     user = get_user(api_key)
     if user is None:
         return HttpResponseForbidden("No/Invalid API KEY")
+    
+    # Get data from json
+    data = json.loads(request.body)
+
+    room_name = data.get("room_name", None)
+    if room_name is None:
+        return HttpResponseBadRequest("Invalid room name")
+    webhook = data.get("webhook", '')
 
     # Check if the room already exists
-    if Room.objects.filter(name=room_name).exists():
-        return HttpResponseNotFound("Room already exists")
+    if Room.objects.filter(name=room_name, owner=user).exists():
+        # If so modify the webhook
+        room = Room.objects.get(name=room_name, owner=user)
+        room.webhook = webhook
+        room.save()
+        return HttpResponse("Room already exists. Webhook updated successfully.")
     # Create a new room
-    Room.objects.create(name=room_name, owner=user)
+    Room.objects.create(name=room_name, owner=user, webhook=webhook)
     return HttpResponse("Room created successfully")
 
 
 def delete_room(request, room_name):
+    
     # Get the API KEY from header
     api_key = request.headers.get("API-KEY")
     user = get_user(api_key)
@@ -68,24 +89,33 @@ def list_rooms(request):
     rooms = Room.objects.filter(owner=user)
     return JsonResponse({"rooms": [room.name for room in rooms]})
 
-
-def add_endpoint(request, room_name, permissions):
+@csrf_exempt
+def add_endpoint(request):
+    if request.method != "POST":
+        return HttpResponseNotFound("Invalid request method")
     # Get the API KEY from header
     api_key = request.headers.get("API-KEY")
     user = get_user(api_key)
     if user is None:
         return HttpResponseForbidden("No/Invalid API KEY")
+    
+
+    # Get data from json
+    data = json.loads(request.body)
+
+    # Get identity, room_name and permissions from the data
+    identity = data.get("identity", "Anonymous")
+    room_name = data.get("room_name", None)
+    permissions = data.get("permissions", None)
+
+    # Check if the room name is valid
+    if room_name is None:
+        return HttpResponseBadRequest("Invalid room name")
+    if permissions is None:
+        return HttpResponseBadRequest("Invalid permissions: The permissions should be read, write or readwrite")
+
     # Get the room or return 404
     room = get_object_or_404(Room, name=room_name, owner=user)
-
-    # Get idenity from the request query params
-    identity = request.GET.get("identity", "Anonymous")
-
-    # Check if the permissions are valid
-    if permissions not in ["read", "write", "readwrite"]:
-        return HttpResponseNotFound(
-            "Invalid permissions: The permissions should be read, write or readwrite"
-        )
 
     # Generate random 100 character code
     endpoint_code = "".join(
@@ -100,7 +130,7 @@ def add_endpoint(request, room_name, permissions):
     )
 
     return JsonResponse(
-        {"code": endpoint_code, "permissions": permissions, "room": room_name, "identity": identity}
+        {"code": endpoint_code, "permissions": permissions, "room_name": room_name, "identity": identity}
     )
 
 
@@ -141,3 +171,16 @@ def list_endpoints(request, room_name):
             ]
         }
     )
+
+@csrf_exempt
+def webhook(request):
+    if request.method == "POST":
+        # Get the data as json - the request is asgi request
+        data = json.loads(request.body)
+        # Get the endpoint code from the data
+        print(data)
+        return HttpResponse("Webhook received", status=200)
+    else:
+        return HttpResponseNotFound("Invalid request method")
+
+        
