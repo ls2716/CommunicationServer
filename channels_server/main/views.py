@@ -38,7 +38,7 @@ def create_room(request):
     if request.method != "POST":
         return HttpResponseNotFound("Invalid request method")
     # Get the API KEY from header
-    api_key = request.headers.get("API-KEY", None)
+    api_key = request.headers.get("API-KEY")
     print("API KEY '", api_key, "'", sep="")
     user = get_user(api_key)
     if user is None:
