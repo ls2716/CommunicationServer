@@ -114,11 +114,12 @@ The usage for a given application is as follows:
 
 with json payload
 
-````json
+```json
 {
   "room_name": "<room_name>",
   "webhook": "<webhook>"
 }
+```
 
 The room name should be unique for the given api-key. The room name should be
 alphanumeric and can contain dashes and underscores. If the room exists, the server will
@@ -140,7 +141,7 @@ json payloads in the following format:
   "code": "<endpoint_code>",
   "timestamp": "<timestamp>"
 }
-````
+```
 
 Room can be deleted by sending a GET request to the `/delete_room/` endpoint like so:
 
