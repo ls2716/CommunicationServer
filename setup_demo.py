@@ -7,7 +7,7 @@ def setup_demo(url):
     # Create a default room
     json_data = {"room_name": "default"}
     response = requests.post(
-        url + "/create_room/", json=json_data, 
+        url + "/create_room/", json=json_data
     )
     if response.status_code != 200:  # Check if the request was successful
         print("Error - check url, server and api key")

@@ -38,7 +38,7 @@ def create_room(request):
     if request.method != "POST":
         return HttpResponseNotFound("Invalid request method")
     # Get the API KEY from header
-    api_key = request.headers.get("API-KEY")
+    api_key = request.headers.get("API-KEY", "")
     print("API KEY '", api_key, "'", sep="")
     user = get_user(api_key)
     if user is None:
@@ -67,7 +67,7 @@ def create_room(request):
 def delete_room(request, room_name):
     
     # Get the API KEY from header
-    api_key = request.headers.get("API-KEY")
+    api_key = request.headers.get("API-KEY", "")
     user = get_user(api_key)
     if user is None:
         return HttpResponseForbidden("No/Invalid API KEY")
@@ -81,7 +81,7 @@ def delete_room(request, room_name):
 
 def list_rooms(request):
     # Get API KEY
-    api_key = request.headers.get("API-KEY")
+    api_key = request.headers.get("API-KEY", "")
     user = get_user(api_key)
     if user is None:
         return HttpResponseForbidden("No/Invalid API KEY")
@@ -101,7 +101,7 @@ def add_endpoint(request):
     if request.method != "POST":
         return HttpResponseNotFound("Invalid request method")
     # Get the API KEY from header
-    api_key = request.headers.get("API-KEY")
+    api_key = request.headers.get("API-KEY", "")
     user = get_user(api_key)
     if user is None:
         return HttpResponseForbidden("No/Invalid API KEY")
@@ -143,7 +143,7 @@ def add_endpoint(request):
 
 def delete_endpoint(request, room_name, endpoint_code):
     # Get the API KEY from header
-    api_key = request.headers.get("API-KEY")
+    api_key = request.headers.get("API-KEY", "")
     user = get_user(api_key)
     if user is None:
         return HttpResponseForbidden("No/Invalid API KEY")
@@ -158,7 +158,7 @@ def delete_endpoint(request, room_name, endpoint_code):
 
 def list_endpoints(request, room_name):
     # Get the API KEY from header
-    api_key = request.headers.get("API-KEY")
+    api_key = request.headers.get("API-KEY", "")
     user = get_user(api_key)
     if user is None:
         return HttpResponseForbidden("No/Invalid API KEY")
